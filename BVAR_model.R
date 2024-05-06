@@ -118,14 +118,14 @@ pred_array <- array(NA, dim = c(pred_ahead, n, store))
   
   
 for (jm in 1:Ndraws) {
-# # sampluji states
+# # sampling states
 # simulation smoother
 sim <- simulateSSM(SSModel(as.matrix(Y) ~ -1 + SSMcustom(Z = C, T = A,  Q = Q, a1 = S0, P1 = P0), H = R), type="states")  # simulation smoother
     
 # Ycyc <- sim[, 1:n,1]
 Ycyc <- Y
 
-# nahrazuji jenom missing values
+# replace missing values
 if(any(is.na(Ycyc))){
   Ycyc_pomocna=as.numeric((as.matrix(Ycyc)))
   Ycyc_pomocna[which(is.na(as.numeric((as.matrix(Ycyc)))))]=as.numeric(sim[, 1:n,1])[which(is.na(Ycyc))]
@@ -159,7 +159,7 @@ P0full <- matrix(vecP0full, nrow = ( n * p), ncol = ( n * p))
 P0[1:nrow(P0), (1):ncol(P0)] <- P0full[1:nrow(P0), ( 1):ncol(P0)]
     
     
-# predikce
+# prediction
 pred <- predict(SSModel(as.matrix(Y) ~ -1 + SSMcustom(Z = C, T = A,  Q = Q, a1 = S0, P1 = P0), H = R), n.ahead=pred_ahead,interval="none",level=0.9)
 pred <-  matrix(unlist(pred), ncol=n)
     
@@ -184,7 +184,7 @@ if (jm > burnin) {
     }
     
     if(jm %% 1000==0) {
-      # Print on the screen some message
+      # iteration
       cat(paste0("iteration: ", jm, "\n"))
     }
     
