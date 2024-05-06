@@ -17,6 +17,7 @@ lapply(libs, require, character.only = T)
 ##------------------------------------------------
 # can handle missing observation a conditional forecast
 ##------------------------------------------------
+## FUN
 ##------------------------------------------------
 #  IMPULSE RESPONSE 
 # be aware of matrix orientation (reg koeficienty pro jednu promenou jsou sloupce!!)
@@ -69,7 +70,7 @@ irf_function_BIG <- function(A=A,sigma=sigma,nstep=11,n=n,p=p){
   JJ<- cbind(diag(n), matrix(0,n,n*(p-1)))
   for (it in 0:(nstep-1)) {
     response[,,(it+1)]<-JJ %*% (A %^% it) %*% t(JJ)%*% t(chol(sigma)) # choleski ordering
-    # response[,,(it+1)]<-JJ %*% (A %^% it) %*% t(JJ)%*% diag(n) # nerekurzivne 
+    # response[,,(it+1)]<-JJ %*% (A %^% it) %*% t(JJ)%*% diag(n) # nenresursive ordering 
   }
   # # # # IRF vzhledem k prvni promene
   # ts.plot(t(response[,1,]),col='red')
@@ -273,13 +274,11 @@ BVAR <- function(Ycyc, p, b,   draw=1,PSI, exogen,alpha = 2)  {
   }
   
   
-  # endogeni matice pri VAR MINNESOTA
-  
-  # hodne spinave pres unconditional variance
-  # 
+  # MINNESOTA PRIOR
+  #  initiate matrix
   s_endo <- apply(y, 2, stats::var)
   
-  #  AR 1 proces pro kazdou radu
+  #  AR 1 process
   for (index in 1:dim(y)[2]) {
     y_pomocna <- y[,index]
     s_endo[index] <-  (summary(lm(y_pomocna ~ -1+lag(y_pomocna)))$sigma)^2
@@ -287,13 +286,7 @@ BVAR <- function(Ycyc, p, b,   draw=1,PSI, exogen,alpha = 2)  {
   }
   
   
-  
   s_endo <- (diag(s_endo))
-  
-  # tohle to pritahne k jednicke, jak zezhora tak zespoda... i.e. make more uninformative
-  # s_endo <- sqrt(diag(s_endo))
-  # 
-  
   
   if(missing(PSI)){
     PSI <- diag(s_endo)
@@ -355,11 +348,7 @@ BVAR <- function(Ycyc, p, b,   draw=1,PSI, exogen,alpha = 2)  {
   
   
   # posterior mode of the VAR coefficients
-  # pinv = TRUE je robustnejsi ale neodpovida OLS.. na druhou stranu dava stejny vysledek jako MATLAB....
   betahat <- pracma::mldivide((crossprod(x,x) + Omega_inv), (t(x) %*% y + Omega_inv %*% b), pinv = FALSE)
-  # betahat <- pracma::mldivide((crossprod(x,x) + Omega_inv), (t(x) %*% y + Omega_inv %*% b), pinv = TRUE)
-  
-  
   
   
   # VAR residuals
